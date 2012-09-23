@@ -4,21 +4,21 @@ DECLARE
   id alias for $1;
   ret text;
 BEGIN
-  ret:=cache_search('way_'||id, 'geom');
+  ret:=cache_search('W'||id, 'geom');
   if ret is not null then
     -- raise notice 'way_get_geom(%) - cache hit', id;
     return ret;
   end if;
 
   -- maybe already finished line?
-  ret:=(select way from osm_line where osm_line.id='way_'||id);
+  ret:=(select way from osm_line where osm_line.id='W'||id);
   if ret is not null then
     -- raise notice 'way_get_geom(%) - osm_line hit', id;
     return ret;
   end if;
 
   -- maybe already finished polygon? -> get only boundary
-  ret:=(select ST_Boundary(way) from osm_polygon where osm_polygon.id='way_'||id);
+  ret:=(select ST_Boundary(way) from osm_polygon where osm_polygon.id='W'||id);
   if ret is not null then
     -- raise notice 'way_get_geom(%) - osm_polygon hit', id;
     return ret;
@@ -27,7 +27,7 @@ BEGIN
   -- raise notice 'way_get_geom(%)', id;
 
 --  raise notice 'count: %', (select count(node_id) from (select * from way_nodes join nodes on way_nodes.node_id=nodes.id where way_nodes.way_id=id order by sequence_id) c group by way_id);
-  ret:=(select cache_insert('way_'||way_id, 'geom', (CASE WHEN count(*)>1 THEN cast(ST_Transform(MakeLine(geom), 900913) as text) ELSE null::text END), to_textarray('node_'||node_id)) from (select * from way_nodes join nodes on way_nodes.node_id=nodes.id where way_nodes.way_id=id and abs(Y(geom))!=90 order by sequence_id) c group by way_id);
+  ret:=(select cache_insert('W'||way_id, 'geom', (CASE WHEN count(*)>1 THEN cast(ST_Transform(MakeLine(geom), 900913) as text) ELSE null::text END), to_textarray('N'||node_id)) from (select * from way_nodes join nodes on way_nodes.node_id=nodes.id where way_nodes.way_id=id and abs(Y(geom))!=90 order by sequence_id) c group by way_id);
   -- abs(Y(geom))!=90 => ignore poles
 
   return ret;
@@ -146,7 +146,7 @@ BEGIN
   -- okay, insert
   insert into osm_point
     values (
-      'node_'||id,
+      'N'||id,
       tags,
       geom
     );
@@ -182,7 +182,7 @@ BEGIN
 
     insert into osm_polygon
       values (
-	'way_'||id,
+	'W'||id,
 	null,
 	tags,
 	ST_MakePolygon(geom)
@@ -192,7 +192,7 @@ BEGIN
 
     insert into osm_line
       values (
-	'way_'||id,
+	'W'||id,
 	tags,
 	geom
       );
@@ -231,14 +231,14 @@ BEGIN
   geom:=rel_get_geom(id, 0);
 
   -- get members
-  select to_textarray((CASE WHEN member_type='N' THEN 'node_' WHEN member_type='W' THEN 'way_' WHEN member_type='R' then 'rel_' ELSE 'error_' END) || member_id) as ids, to_textarray(member_role) as roles into members from relation_members where relation_id=id group by relation_id;
+  select to_textarray(member_type || member_id) as ids, to_textarray(member_role) as roles into members from relation_members where relation_id=id group by relation_id;
 
   -- raise notice 'assemble_rel(%)', id;
 
   -- okay, insert
   insert into osm_rel
     values (
-      'rel_'||id,
+      'R'||id,
       tags,
       geom,
       members.ids,
@@ -320,7 +320,7 @@ BEGIN
     -- else use tags from outer polygon(s) and delete from osm_polygon
     tags:=tags_merge(tags, way_assemble_tags(outer_members[1]));
     for i in 1..array_upper(outer_members, 1) loop
-      delete from osm_polygon where osm_polygon.id='way_'||(outer_members[i]);
+      delete from osm_polygon where osm_polygon.id='W'||(outer_members[i]);
     end loop;
   end if;
 
@@ -332,13 +332,13 @@ BEGIN
   -- raise notice 'assemble_multipolygon(%)', id;
 
   -- get members
-  select to_textarray((CASE WHEN member_type='N' THEN 'node_' WHEN member_type='W' THEN 'way_' WHEN member_type='R' then 'rel_' ELSE 'error_' END) || member_id) as ids, to_textarray(member_role) as roles into members from relation_members where relation_id=id group by relation_id;
+  select to_textarray(member_type || member_id) as ids, to_textarray(member_role) as roles into members from relation_members where relation_id=id group by relation_id;
 
   -- okay, insert
   insert into osm_polygon
     values (
-      'rel_'||id,
-      'rel_'||id,
+      'R'||id,
+      'R'||id,
       tags,
       geom,
       members.ids,

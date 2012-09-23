@@ -12,6 +12,6 @@ from (
         join relation_members on relation_tags.relation_id=relation_members.relation_id and relation_members.member_type='W'
       where k='boundary' and v in ('administrative', 'political')
   ) x
-  left join osm_boundary on 'boundary_'||x.id=osm_boundary.osm_id
+  left join osm_boundary on 'B'||x.id=osm_boundary.osm_id
   where osm_boundary.osm_id is null
 ) y;

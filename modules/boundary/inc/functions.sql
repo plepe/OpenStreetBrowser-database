@@ -36,10 +36,10 @@ BEGIN
    
   insert into osm_boundary
     values (
-      'boundary_'||id,
+      'B'||id,
       tags,
       min_admin_level,
-      (select array_agg('rel_'||rel_id) from (select unnest(rel_ids) as rel_id) x),
+      (select array_agg('R'||rel_id) from (select unnest(rel_ids) as rel_id) x),
       ST_Transform(geom, 900913)
     );
   
@@ -56,7 +56,7 @@ BEGIN
     (select actions.id, osm_boundary.id as osm_id from (select id from actions where data_type='W'
      union
      select member_id from actions join relation_members rm on rm.relation_id=actions.id and member_type='W' where actions.data_type='R'
-     ) actions join osm_boundary on osm_boundary.id='boundary_'||actions.id);
+     ) actions join osm_boundary on osm_boundary.id='B'||actions.id);
 
   -- now delete everything
   delete from osm_boundary using osm_boundary_update

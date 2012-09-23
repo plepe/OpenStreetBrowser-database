@@ -127,15 +127,14 @@ DECLARE
   num_rows  int;
 BEGIN
   delete from osm_point_extract using
-    (select (CASE WHEN data_type='N' THEN 'node_'||id
-	    END) as id from actions) x
+    (select (data_type || id) as id from actions) x
     where id=x.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_point_extract (%)', num_rows;
 
   delete from osm_line_extract using
-    (select (CASE WHEN data_type='W' THEN 'way_'||id
+    (select (CASE WHEN data_type='W' THEN 'W'||id
 	    END) as id from actions) x
     where id=x.id;
 
@@ -143,9 +142,7 @@ BEGIN
   raise notice 'deleted from osm_line_extract (%)', num_rows;
 
   delete from osm_polygon_extract using
-    (select (CASE WHEN data_type='W' THEN 'way_'||id
-		  WHEN data_type='R' THEN 'rel_'||id
-	    END) as id from actions) x
+    (select data_type || id as id from actions) x
     where id=x.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
@@ -167,9 +164,7 @@ BEGIN
     from 
       osm_point join
       actions on
-        osm_point.id=
-          (CASE WHEN data_type='N' THEN 'node_'||actions.id
-          END) and
+        osm_point.id=(data_type || actions.id) and
         action not in ('D')
      where
        extract_classify_point(osm_point.id, osm_point.tags, osm_point.way)
@@ -186,9 +181,7 @@ BEGIN
     from 
       osm_line join
       actions on
-        osm_line.id=
-          (CASE WHEN data_type='W' THEN 'way_'||actions.id
-	  END) and
+        osm_line.id=(data_type || actions.id) and
         action not in ('D')
      where
        extract_classify_line(osm_line.id, osm_line.tags, osm_line.way)
@@ -205,10 +198,7 @@ BEGIN
     from 
       osm_polygon join
       actions on
-        osm_polygon.id=
-          (CASE WHEN data_type='W' THEN 'way_'||actions.id
-		WHEN data_type='R' THEN 'rel_'||actions.id
-	  END) and
+        osm_polygon.id=(data_type||actions.id) and
         action not in ('D')
      where
        ST_Area(osm_polygon.way)>1000000
