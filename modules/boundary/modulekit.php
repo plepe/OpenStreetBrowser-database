@@ -1,0 +1,3 @@
+<?
+$depend=array("hooks");
+

@@ -113,7 +113,13 @@ function osm_update_start() {
     1=>array("pipe", "w"),
     2=>array("pipe", "w"));
 
-  $command="osmosis --read-replication-interval workingDirectory=$working_dir --simplify-change --write-pgsimp-change database={$db_central['name']} password={$db_central['passwd']}";
+  global $osmosis_path;
+  if(isset($osmosis_path))
+    $ex="{$osmosis_path}/bin/osmosis";
+  else
+    $ex="osmosis";
+
+  $command="{$ex} --read-replication-interval workingDirectory=$working_dir --simplify-change --write-pgsimp-change database={$db_central['name']} password={$db_central['passwd']} user={$db_central['user']}";
 
   debug("osm_update", "starting osmosis ".Date("r"));
   $osm_update_proc=proc_open($command, $descriptors, $pipes, null, array("JAVACMD_OPTIONS"=>"-Xmx512M"));
@@ -122,10 +128,15 @@ function osm_update_start() {
     mcp_register_stream(MCP_READ, $pipes[1], "osm_update_read_stdout");
     mcp_register_stream(MCP_READ, $pipes[2], "osm_update_read_stderr");
   }
+  else {
+    print stream_get_contents($pipes[1]);
+    print stream_get_contents($pipes[2]);
+  }
 //  if($stdin)
 //    fwrite($pipes[0], $stdin);
 
   fclose($pipes[0]);
+
 }
 
 function osm_update_tick() {

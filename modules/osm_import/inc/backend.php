@@ -21,9 +21,9 @@ function osm_import_db_init() {
   }
 
   if(isset($osmosis_path))
-    $osmosis_path="{$osmosis_path}/";
+    $ex="{$osmosis_path}/bin/osmosis";
   else
-    $osmosis_path="";
+    $ex="osmosis";
 
   debug("database not initialized yet -> import", "osm_import");
 
@@ -42,7 +42,7 @@ function osm_import_db_init() {
 
   // create tmp_dir
   mkdir("pgimport");
-  system("{$osmosis_path}osmosis --read-xml file=$osm_import_source --write-pgsimp-dump directory=pgimport");
+  system("{$ex} --read-xml file=$osm_import_source --write-pgsimp-dump directory=pgimport");
 
   sql_file(modulekit_file("osm_import", "osmosis_scripts/pgsimple_load_0.6.sql"));
 
