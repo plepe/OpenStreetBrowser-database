@@ -52,7 +52,10 @@ function osm_update_read_stdout($p) {
     debug("$p", "osm_update");
   }
   else {
-    mcp_unregister_stream(MCP_READ, $p);
+    if(function_exists("mcp_unregister_stream")) {
+      mcp_unregister_stream(MCP_READ, $p);
+    }
+
     fclose($p);
     $exit=proc_close($osm_update_proc);
 
@@ -70,7 +73,9 @@ function osm_update_read_stderr($p) {
     debug("$error", "osm_update");
   }
   elseif($p) {
-    mcp_unregister_stream(MCP_READ, $p);
+    if(function_exists("mcp_unregister_stream")) {
+      mcp_unregister_stream(MCP_READ, $p);
+    }
   }
 }
 
@@ -113,8 +118,10 @@ function osm_update_start() {
   debug("osm_update", "starting osmosis ".Date("r"));
   $osm_update_proc=proc_open($command, $descriptors, $pipes, null, array("JAVACMD_OPTIONS"=>"-Xmx512M"));
 
-  mcp_register_stream(MCP_READ, $pipes[1], "osm_update_read_stdout");
-  mcp_register_stream(MCP_READ, $pipes[2], "osm_update_read_stderr");
+  if(function_exists("mcp_register_stream")) {
+    mcp_register_stream(MCP_READ, $pipes[1], "osm_update_read_stdout");
+    mcp_register_stream(MCP_READ, $pipes[2], "osm_update_read_stderr");
+  }
 //  if($stdin)
 //    fwrite($pipes[0], $stdin);
 
@@ -145,8 +152,8 @@ function osm_update_command($str) {
   }
 }
 
-register_hook("mcp_command", "osm_update_command");
-register_hook("mcp_tick", "osm_update_tick");
+//register_hook("mcp_command", "osm_update_command");
+//register_hook("mcp_tick", "osm_update_tick");
 
 // THIS IS MISSING
 //  if($last_clean+7200<time()) {
