@@ -46,6 +46,9 @@ function osm_import_db_init() {
 
   sql_file(modulekit_file("osm_import", "osmosis_scripts/pgsimple_load_0.6.sql"));
 
+  // Finally create the osm_point, osm_polygon, etc. tables
+  sql_file(modulekit_file("osm_import", "db.sql"));
+
   // reset search_path
   //sql_query("set search_path to {$search_path}");
 }

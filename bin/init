@@ -3,6 +3,8 @@
 require "conf.php";
 $modulekit_default_includes=array(
   "pgsql-functions"=>array("inc/*.sql"),
+  "pgsql-init"=>array("init.sql"),
+  "pgsql-after-import"=>array("after-import.sql"),
   "php"=>array("inc/*.php"),
 );
 require "modulekit/loader.php";
@@ -66,4 +68,14 @@ foreach(modulekit_get_includes("pgsql-functions") as $file) {
   sql_file($file);
 }
 
+// Initialize database modules
+foreach(modulekit_get_includes("pgsql-init") as $file) {
+  sql_file($file);
+}
+
 osm_import_db_init();
+
+// Initialize database modules
+foreach(modulekit_get_includes("pgsql-after-import") as $file) {
+  sql_file($file);
+}
