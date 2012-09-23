@@ -1,0 +1,14 @@
+#!/usr/bin/php
+<?
+require "conf.php";
+$modulekit_default_includes=array(
+  "php"=>array("inc/*.php"),
+);
+require "modulekit/loader.php";
+
+require modulekit_file("openstreetbrowser_database", "bin/simple.php");
+
+while(1) {
+  osm_update_start();
+  sleep(30);
+}
