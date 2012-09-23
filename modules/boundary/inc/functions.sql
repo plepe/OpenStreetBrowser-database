@@ -53,14 +53,14 @@ DECLARE
 BEGIN
   -- save all ids we are going to delete in osm_boundary_update
   insert into osm_boundary_update
-    (select id, osm_id from (select id from actions where data_type='W'
+    (select actions.id, osm_boundary.id as osm_id from (select id from actions where data_type='W'
      union
      select member_id from actions join relation_members rm on rm.relation_id=actions.id and member_type='W' where actions.data_type='R'
-     ) actions join osm_boundary on osm_id='boundary_'||id);
+     ) actions join osm_boundary on osm_boundary.id='boundary_'||actions.id);
 
   -- now delete everything
   delete from osm_boundary using osm_boundary_update
-    where osm_boundary.osm_id=osm_boundary_update.osm_id;
+    where osm_boundary.id=osm_boundary_update.osm_id;
 
   GET DIAGNOSTICS num_rows := ROW_COUNT;
   raise notice 'deleted from osm_boundary (%)', num_rows;

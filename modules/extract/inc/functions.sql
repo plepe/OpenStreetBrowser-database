@@ -62,42 +62,42 @@ DECLARE
   num_rows  int;
   match text;
 BEGIN
-  match:='((osm_tags @> E''"place"=>"continent"''::hstore) or (osm_tags @> E''"place"=>"country"''::hstore) or (osm_tags @> E''"place"=>"state"''::hstore) or (osm_tags @> E''"place"=>"city"''::hstore) or (osm_tags @> E''"place"=>"county"''::hstore) or (osm_tags @> E''"place"=>"region"''::hstore) or (osm_tags @> E''"place"=>"town"''::hstore) or (osm_tags @> E''"place"=>"island"''::hstore) or (osm_tags @> E''"place"=>"ocean"''::hstore) or (osm_tags @> E''"place"=>"sea"''::hstore))';
+  match:='((tags @> E''"place"=>"continent"''::hstore) or (tags @> E''"place"=>"country"''::hstore) or (tags @> E''"place"=>"state"''::hstore) or (tags @> E''"place"=>"city"''::hstore) or (tags @> E''"place"=>"county"''::hstore) or (tags @> E''"place"=>"region"''::hstore) or (tags @> E''"place"=>"town"''::hstore) or (tags @> E''"place"=>"island"''::hstore) or (tags @> E''"place"=>"ocean"''::hstore) or (tags @> E''"place"=>"sea"''::hstore))';
 
   execute 'insert into osm_point_extract ( '
     || 'select * '
     || 'from ( '
     || '  select '
-    || '    osm_id, '
-    || '    osm_tags, '
-    || '    osm_way '
+    || '    id, '
+    || '    tags, '
+    || '    way '
     || '  from '
     || '    osm_point '
     || '  where '
     || match
     || ') x '
     || 'where '
-    || '  extract_classify_point(osm_id, osm_tags, osm_way));';
+    || '  extract_classify_point(id, tags, way));';
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'inserted to osm_point_extract (%)', num_rows;
 
-  match:='(((osm_tags @> E''"highway"=>"motorway"''::hstore) or (osm_tags @> E''"highway"=>"motorway_link"''::hstore) or (osm_tags @> E''"highway"=>"trunk"''::hstore) or (osm_tags @> E''"highway"=>"trunk_link"''::hstore) or (osm_tags @> E''"highway"=>"primary"''::hstore) or (osm_tags @> E''"highway"=>"primary_link"''::hstore) or (osm_tags @> E''"highway"=>"secondary"''::hstore) or (osm_tags @> E''"highway"=>"tertiary"''::hstore)) or ((osm_tags @> E''"aeroway"=>"runway"''::hstore)) or (((osm_tags @> E''"railway"=>"rail"''::hstore)) and ( (osm_tags @> E''"usage"=>"main"''::hstore))) or (( (osm_tags @> E''"power"=>"line"''::hstore))) or (((osm_tags @> E''"waterway"=>"river"''::hstore) or (osm_tags @> E''"waterway"=>"canal"''::hstore))))';
+  match:='(((tags @> E''"highway"=>"motorway"''::hstore) or (tags @> E''"highway"=>"motorway_link"''::hstore) or (tags @> E''"highway"=>"trunk"''::hstore) or (tags @> E''"highway"=>"trunk_link"''::hstore) or (tags @> E''"highway"=>"primary"''::hstore) or (tags @> E''"highway"=>"primary_link"''::hstore) or (tags @> E''"highway"=>"secondary"''::hstore) or (tags @> E''"highway"=>"tertiary"''::hstore)) or ((tags @> E''"aeroway"=>"runway"''::hstore)) or (((tags @> E''"railway"=>"rail"''::hstore)) and ( (tags @> E''"usage"=>"main"''::hstore))) or (( (tags @> E''"power"=>"line"''::hstore))) or (((tags @> E''"waterway"=>"river"''::hstore) or (tags @> E''"waterway"=>"canal"''::hstore))))';
 
   execute 'insert into osm_line_extract ( '
     || 'select * '
     || 'from ( '
     || '  select '
-    || '    osm_id, '
-    || '    osm_tags, '
-    || '    osm_way '
+    || '    id, '
+    || '    tags, '
+    || '    way '
     || '  from '
     || '    osm_line '
     || '  where '
     || match
     || ') x '
     || 'where '
-    || '  extract_classify_line(osm_id, osm_tags, osm_way));';
+    || '  extract_classify_line(id, tags, way));';
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'inserted to osm_line_extract (%)', num_rows;
@@ -106,13 +106,13 @@ BEGIN
     || 'select * '
     || 'from ( '
     || '  select '
-    || '    osm_id, '
-    || '    osm_tags, '
-    || '    osm_way '
+    || '    id, '
+    || '    tags, '
+    || '    way '
     || '  from '
     || '    osm_polygon '
     || '  where '
-    || '    ST_Area(osm_way)>1000000'
+    || '    ST_Area(way)>1000000'
     || ') x);';
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
@@ -129,7 +129,7 @@ BEGIN
   delete from osm_point_extract using
     (select (CASE WHEN data_type='N' THEN 'node_'||id
 	    END) as id from actions) x
-    where osm_id=id;
+    where id=x.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_point_extract (%)', num_rows;
@@ -137,7 +137,7 @@ BEGIN
   delete from osm_line_extract using
     (select (CASE WHEN data_type='W' THEN 'way_'||id
 	    END) as id from actions) x
-    where osm_id=id;
+    where id=x.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_line_extract (%)', num_rows;
@@ -146,7 +146,7 @@ BEGIN
     (select (CASE WHEN data_type='W' THEN 'way_'||id
 		  WHEN data_type='R' THEN 'rel_'||id
 	    END) as id from actions) x
-    where osm_id=id;
+    where id=x.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_polygon_extract (%)', num_rows;
@@ -161,18 +161,18 @@ DECLARE
 BEGIN
   insert into osm_point_extract (
     select
-      osm_id,
-      osm_tags,
-      osm_way
+      osm_point.id,
+      osm_point.tags,
+      osm_point.way
     from 
       osm_point join
       actions on
-        osm_id=
-          (CASE WHEN data_type='N' THEN 'node_'||id
+        osm_point.id=
+          (CASE WHEN data_type='N' THEN 'node_'||actions.id
           END) and
         action not in ('D')
      where
-       extract_classify_point(osm_id, osm_tags, osm_way)
+       extract_classify_point(osm_point.id, osm_point.tags, osm_point.way)
    );
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
@@ -180,18 +180,18 @@ BEGIN
 
   insert into osm_line_extract (
     select
-      osm_id,
-      osm_tags,
-      osm_way
+      osm_line.id,
+      osm_line.tags,
+      osm_line.way
     from 
       osm_line join
       actions on
-        osm_id=
-          (CASE WHEN data_type='W' THEN 'way_'||id
+        osm_line.id=
+          (CASE WHEN data_type='W' THEN 'way_'||actions.id
 	  END) and
         action not in ('D')
      where
-       extract_classify_line(osm_id, osm_tags, osm_way)
+       extract_classify_line(osm_line.id, osm_line.tags, osm_line.way)
    );
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
@@ -199,19 +199,19 @@ BEGIN
 
   insert into osm_polygon_extract (
     select
-      osm_id,
-      osm_tags,
-      osm_way
+      osm_polygon.id,
+      osm_polygon.tags,
+      osm_polygon.way
     from 
       osm_polygon join
       actions on
-        osm_id=
-          (CASE WHEN data_type='W' THEN 'way_'||id
-		WHEN data_type='R' THEN 'rel_'||id
+        osm_polygon.id=
+          (CASE WHEN data_type='W' THEN 'way_'||actions.id
+		WHEN data_type='R' THEN 'rel_'||actions.id
 	  END) and
         action not in ('D')
      where
-       ST_Area(osm_way)>1000000
+       ST_Area(osm_polygon.way)>1000000
    );
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;

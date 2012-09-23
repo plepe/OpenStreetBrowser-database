@@ -12,62 +12,62 @@ create index way_nodes_seq_id on way_nodes("sequence_id");
 -- point
 drop table if exists osm_point;
 create table osm_point (
-  osm_id		text		not null,
-  osm_tags		hstore		null,
-  primary key(osm_id)
+  id		text		not null,
+  tags		hstore		null,
+  primary key(id)
 );
-select AddGeometryColumn('osm_point', 'osm_way', 900913, 'POINT', 2);
+select AddGeometryColumn('osm_point', 'way', 900913, 'POINT', 2);
  
 select assemble_point(id) from nodes;
  
-create index osm_point_tags on osm_point using gin(osm_tags);
-create index osm_point_way  on osm_point using gist(osm_way);
-create index osm_point_way_tags on osm_point using gist(osm_way, osm_tags);
+create index osm_point_tags on osm_point using gin(tags);
+create index osm_point_way  on osm_point using gist(way);
+create index osm_point_way_tags on osm_point using gist(way, tags);
 
 -- ways -> osm_line and osm_polygon
 drop table if exists osm_line;
 create table osm_line (
-  osm_id		text		not null,
-  osm_tags		hstore		null,
-  primary key(osm_id)
+  id		text		not null,
+  tags		hstore		null,
+  primary key(id)
 );
-select AddGeometryColumn('osm_line', 'osm_way', 900913, 'LINESTRING', 2);
+select AddGeometryColumn('osm_line', 'way', 900913, 'LINESTRING', 2);
 
 drop table if exists osm_polygon;
 create table osm_polygon (
-  osm_id		text		not null,
+  id		text		not null,
   rel_id		text		null,
-  osm_tags		hstore		null,
-  primary key(osm_id)
+  tags		hstore		null,
+  primary key(id)
 );
-select AddGeometryColumn('osm_polygon', 'osm_way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_polygon', 'way', 900913, 'GEOMETRY', 2);
 alter table osm_polygon
   add column	member_ids		text[]		null,
   add column	member_roles		text[]		null;
 
 select assemble_way(id) from ways;
 
-create index osm_line_tags on osm_line using gin(osm_tags);
-create index osm_line_way  on osm_line using gist(osm_way);
-create index osm_line_way_tags on osm_line using gist(osm_way, osm_tags);
+create index osm_line_tags on osm_line using gin(tags);
+create index osm_line_way  on osm_line using gist(way);
+create index osm_line_way_tags on osm_line using gist(way, tags);
 
 -- rel
 drop table if exists osm_rel;
 create table osm_rel (
-  osm_id		text		not null,
-  osm_tags		hstore		null,
-  primary key(osm_id)
+  id		text		not null,
+  tags		hstore		null,
+  primary key(id)
 );
-select AddGeometryColumn('osm_rel', 'osm_way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_rel', 'way', 900913, 'GEOMETRY', 2);
 alter table osm_rel
   add column	member_ids		text[]		null,
   add column	member_roles		text[]		null;
 
 select assemble_rel(id) from relations;
 
-create index osm_rel_tags on osm_rel using gin(osm_tags);
-create index osm_rel_way  on osm_rel using gist(osm_way);
-create index osm_rel_way_tags on osm_rel using gist(osm_way, osm_tags);
+create index osm_rel_tags on osm_rel using gin(tags);
+create index osm_rel_way  on osm_rel using gist(way);
+create index osm_rel_way_tags on osm_rel using gist(way, tags);
 create index osm_rel_members_idx on osm_rel using gin(member_ids);
 
 select
@@ -76,9 +76,9 @@ from relation_tags
 where k='type' and v in ('multipolygon', 'boundary');
 
 create index osm_polygon_rel_id on osm_polygon(rel_id);
-create index osm_polygon_tags on osm_polygon using gin(osm_tags);
-create index osm_polygon_way  on osm_polygon using gist(osm_way);
-create index osm_polygon_way_tags on osm_polygon using gist(osm_way, osm_tags);
+create index osm_polygon_tags on osm_polygon using gin(tags);
+create index osm_polygon_way  on osm_polygon using gist(way);
+create index osm_polygon_way_tags on osm_polygon using gist(way, tags);
 create index osm_polygon_members_idx on osm_polygon using gin(member_ids);
 
 -- osm_all_* build the osm_all view
@@ -98,55 +98,55 @@ drop view if exists osm_all_rel;
 -- osm_all_point
 create view osm_all_point as (
   select
-    "osm_id",
-    'type=>node, form=>point'::hstore as "osm_type",
-    "osm_tags",
-    "osm_way" as "osm_way",
-    "osm_way" as "osm_way_point",
-    ST_MakeLine("osm_way", "osm_way") as "osm_way_line",
-    ST_MakePolygon(ST_MakeLine(Array["osm_way", "osm_way", "osm_way", "osm_way"])) as "osm_way_polygon"
+    "id",
+    'type=>node, form=>point'::hstore as "type",
+    "tags",
+    "way" as "way",
+    "way" as "way_point",
+    ST_MakeLine("way", "way") as "way_line",
+    ST_MakePolygon(ST_MakeLine(Array["way", "way", "way", "way"])) as "way_polygon"
   from osm_point
 );
 
 -- osm_all_line
 create view osm_all_line as (
   select
-    "osm_id",
-    'type=>way, form=>line'::hstore as "osm_type",
-    "osm_tags",
-    "osm_way" as "osm_way",
-    ST_Line_Interpolate_Point("osm_way", 0.5) as "osm_way_point",
-    "osm_way" as "osm_way_line",
-    null::geometry as "osm_way_polygon"
+    "id",
+    'type=>way, form=>line'::hstore as "type",
+    "tags",
+    "way" as "way",
+    ST_Line_Interpolate_Point("way", 0.5) as "way_point",
+    "way" as "way_line",
+    null::geometry as "way_polygon"
   from osm_line
 );
 
 -- osm_all_polygon
 create view osm_all_polygon as (
   select
-    "osm_id",
+    "id",
     (CASE
       WHEN rel_id is not null THEN 'type=>rel, form=>polygon'::hstore 
       ELSE 'type=>way, form=>polygon'::hstore 
-    END) as "osm_type",
-    "osm_tags",
-    "osm_way" as "osm_way",
-    ST_Centroid("osm_way") as "osm_way_point",
-    ST_Boundary("osm_way") as "osm_way_line",
-    "osm_way" as "osm_way_polygon"
+    END) as "type",
+    "tags",
+    "way" as "way",
+    ST_Centroid("way") as "way_point",
+    ST_Boundary("way") as "way_line",
+    "way" as "way_polygon"
   from osm_polygon
 );
 
 -- osm_all_rel
 create view osm_all_rel as (
   select
-    "osm_id",
-    'type=>rel, form=>special'::hstore as "osm_type",
-    "osm_tags",
-    "osm_way" as "osm_way",
-    ST_CollectionExtract("osm_way", 1) as "osm_way_point",
-    ST_CollectionExtract("osm_way", 2) as "osm_way_line",
-    ST_CollectionExtract("osm_way", 3) as "osm_way_polygon"
+    "id",
+    'type=>rel, form=>special'::hstore as "type",
+    "tags",
+    "way" as "way",
+    ST_CollectionExtract("way", 1) as "way_point",
+    ST_CollectionExtract("way", 2) as "way_line",
+    ST_CollectionExtract("way", 3) as "way_polygon"
   from osm_rel
 );
 
@@ -186,14 +186,14 @@ create view osm_allrel as (
 drop view if exists osm_rel_members;
 create view osm_rel_members as (
   select
-    osm_rel.osm_id,
-    osm_line.osm_id as member_id,
+    osm_rel.id,
+    osm_line.id as member_id,
     osm_rel.member_ids as rel_member_ids,
     member_role,
-    osm_rel.osm_tags as osm_tags,
-    osm_line.osm_tags as member_tags,
-    osm_rel.osm_way as osm_way,
-    osm_line.osm_way as member_way
+    osm_rel.tags as tags,
+    osm_line.tags as member_tags,
+    osm_rel.way as osm_way,
+    osm_line.way as member_way
   from (
     select
       osm_rel.*,
@@ -201,5 +201,5 @@ create view osm_rel_members as (
       unnest(member_roles) as member_role
     from osm_rel) osm_rel
     join osm_line
-      on osm_line.osm_id=osm_rel.member_id
+      on osm_line.id=osm_rel.member_id
 );

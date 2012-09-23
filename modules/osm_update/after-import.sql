@@ -93,7 +93,7 @@ BEGIN
   raise notice 'deleted from osm_cache';
 
   -- delete changed/deleted points
-  delete from osm_point using actions where osm_id='node_'||actions.id and data_type='N';
+  delete from osm_point using actions where osm_point.id='node_'||actions.id and data_type='N';
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_point (%)', num_rows;
@@ -101,13 +101,13 @@ BEGIN
   -- delete changed/deleted lines
   delete from osm_line using
     (select id from actions where data_type='W') actions 
-  where osm_id='way_'||id;
+  where osm_line.id='way_'||actions.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_line (%)', num_rows;
 
   -- delete changed/deleted rels
-  delete from osm_rel using actions where osm_id='rel_'||actions.id and data_type='R';
+  delete from osm_rel using actions where osm_rel.id='rel_'||actions.id and data_type='R';
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_rel (%)', num_rows;
@@ -115,14 +115,14 @@ BEGIN
   -- delete changed/deleted polygons
   delete from osm_polygon using
     (select id from actions where data_type='W') actions
-  where osm_id='way_'||id;
+  where osm_polygon.id='way_'||actions.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_polygon (ways) (%)', num_rows;
 
   delete from osm_polygon using
     (select id from actions where data_type='R') actions
-  where osm_id='rel_'||id;
+  where osm_polygon.id='rel_'||actions.id;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_polygon (multipolygons) (%)', num_rows;

@@ -11,14 +11,14 @@ BEGIN
   end if;
 
   -- maybe already finished line?
-  ret:=(select osm_way from osm_line where osm_id='way_'||id);
+  ret:=(select way from osm_line where osm_line.id='way_'||id);
   if ret is not null then
     -- raise notice 'way_get_geom(%) - osm_line hit', id;
     return ret;
   end if;
 
   -- maybe already finished polygon? -> get only boundary
-  ret:=(select ST_Boundary(osm_way) from osm_polygon where osm_id='way_'||id);
+  ret:=(select ST_Boundary(way) from osm_polygon where osm_polygon.id='way_'||id);
   if ret is not null then
     -- raise notice 'way_get_geom(%) - osm_polygon hit', id;
     return ret;
@@ -320,7 +320,7 @@ BEGIN
     -- else use tags from outer polygon(s) and delete from osm_polygon
     tags:=tags_merge(tags, way_assemble_tags(outer_members[1]));
     for i in 1..array_upper(outer_members, 1) loop
-      delete from osm_polygon where osm_id='way_'||(outer_members[i]);
+      delete from osm_polygon where osm_polygon.id='way_'||(outer_members[i]);
     end loop;
   end if;
 
