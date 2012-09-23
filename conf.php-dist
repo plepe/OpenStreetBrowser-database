@@ -31,3 +31,6 @@ $osm_import_source="data.osm";
 
 // You may optionally define where Osmosis is located
 # $osmosis_path="~/osm/software/osmosis-latest";
+
+// You shoud set the path to the sql-files of your PostGIS-installation
+# $path_postgis="/usr/share/postgresql/9.1/contrib/postgis-1.5";

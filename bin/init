@@ -1,13 +1,58 @@
 #!/usr/bin/php
 <?
 require "conf.php";
+$modulekit_default_includes=array(
+  "pgsql-functions"=>array("inc/*.sql"),
+  "php"=>array("inc/*.php"),
+);
+require "modulekit/loader.php";
+print_r($modulekit);
 
-$postgresql_contrib="/usr/share/postgresql/9.1/contrib";
-$postgis_contrib="$postgresql_contrib/postgis-1.5";
+if(!function_exists("debug")) {
+  define('D_ERROR', 3);
+  define('D_WARNING', 2);
+  define('D_NOTICE', 1);
+  define('D_DEBUG', 0);
 
-system("psql -d {$db['name']} -c 'create language plpgsql'");
-system("psql -d {$db['name']} -c 'create extension hstore'");
-system("psql -d {$db['name']} -c 'create extension btree_gist'");
-system("psql -d {$db['name']} -f $postgis_contrib/postgis.sql");
-system("psql -d {$db['name']} -f $postgis_contrib/spatial_ref_sys.sql");
-system("psql -d {$db['name']} -f $root_path/init.sql");
+  function debug($msg, $module, $level=D_NOTICE) {
+    print "DEBUG ($module, $level): $msg\n";
+  }
+}
+
+if(!function_exists("sql_file")) {
+  global $PG_PARAMS;
+  $PG_PARAMS="-d {$db_central['name']}";
+
+
+  function sql_file($file) {
+    global $PG_PARAMS;
+
+    debug("Executing $file", "openstreetbrowser-database", D_NOTICE);
+    system("psql {$PG_PARAMS} -f '$file'");
+  }
+
+  function sql_query($query) {
+    return pg_query($query);
+  }
+}
+
+// Connect to database
+pg_connect("dbname={$db_central['name']} host={$db_central['host']} user={$db_central['name']} password={$db_central['passwd']}");
+
+// Load extensions
+sql_query("create language plpgsql");
+sql_query("create extension hstore");
+sql_query("create extension btree_gist");
+
+// Load PostGIS functions
+if(!isset($path_postgis))
+  $path_postgis="/usr/share/postgresql/9.1/contrib/postgis-1.5";
+sql_file("$path_postgis/postgis.sql");
+sql_file("$path_postgis/spatial_ref_sys.sql");
+
+// Load functions defined by modules
+foreach(modulekit_get_includes("pgsql-functions") as $file) {
+  sql_file($file);
+}
+
+osm_import_db_init();
