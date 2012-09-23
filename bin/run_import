@@ -1,0 +1,45 @@
+#!/usr/bin/php
+<?
+require "conf.php";
+$modulekit_default_includes=array(
+  "pgsql-functions"=>array("inc/*.sql"),
+  "php"=>array("inc/*.php"),
+);
+require "modulekit/loader.php";
+print_r($modulekit);
+
+if(!function_exists("debug")) {
+  define('D_ERROR', 3);
+  define('D_WARNING', 2);
+  define('D_NOTICE', 1);
+  define('D_DEBUG', 0);
+
+  function debug($msg, $module, $level=D_NOTICE) {
+    print "DEBUG ($module, $level): $msg\n";
+  }
+}
+
+if(!function_exists("sql_file")) {
+  global $PG_PARAMS;
+  $PG_PARAMS="-d {$db_central['name']}";
+
+
+  function sql_file($file) {
+    global $PG_PARAMS;
+
+    debug("Executing $file", "openstreetbrowser-database", D_NOTICE);
+    system("psql {$PG_PARAMS} -f '$file'");
+  }
+
+  function sql_query($query) {
+    return pg_query($query);
+  }
+}
+
+foreach(modulekit_get_includes("pgsql-functions") as $file) {
+  sql_file($file);
+}
+
+pg_connect("dbname={$db_central['name']} host={$db_central['host']} user={$db_central['name']} password={$db_central['passwd']}");
+
+osm_import_db_init();

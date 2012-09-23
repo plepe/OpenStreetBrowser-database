@@ -1,7 +1,6 @@
 <?
 function osm_import_db_init() {
   global $osmosis_path;
-  global $osmosis_db;
   global $osm_import_source;
   global $db_central;
   global $tmp_dir;
@@ -21,15 +20,15 @@ function osm_import_db_init() {
     return;
   }
 
-  if(!$osmosis_path) {
-    debug("set \$osmosis_path in conf.php to the root of an osmosis-installation", "osm_import");
-    return;
-  }
+  if(isset($osmosis_path))
+    $osmosis_path="{$osmosis_path}/";
+  else
+    $osmosis_path="";
 
   debug("database not initialized yet -> import", "osm_import");
 
-  if(!$osmosis_db)
-    $osmosis_db=$db_central;
+  if(!isset($db_osmosis))
+    $db_osmosis=$db_central;
 
   // remember search_path and set to 'osm'
   //$res=sql_query("show search_path");
@@ -38,16 +37,15 @@ function osm_import_db_init() {
   //sql_query("set search_path to {$osmosis_db['user']}, {$db_central['user']}, public");
 
   // load schema
-  sql_query(file_get_contents("$osmosis_path/script/pgsimple_schema_0.6.sql"));
+  sql_file(modulekit_file("osm_import", "osmosis_scripts/pgsimple_schema_0.6.sql"));
+  sql_file(modulekit_file("osm_import", "osmosis_scripts/pgsimple_schema_0.6_action.sql"));
 
   // create tmp_dir
-  mkdir("$tmp_dir/pgimport");
-  system("osmosis --read-xml file=$osm_import_source --write-pgsimp host={$osmosis_db['host']} user={$osmosis_db['user']} password={$osmosis_db['passwd']} database={$osmosis_db['name']}");
+  mkdir("pgimport");
+  system("{$osmosis_path}osmosis --read-xml file=$osm_import_source --write-pgsimp-dump directory=pgimport");
+
+  sql_file(modulekit_file("osm_import", "osmosis_scripts/pgsimple_load_0.6.sql"));
 
   // reset search_path
   //sql_query("set search_path to {$search_path}");
-
-  // load db.sql which generates osm_point etc. tables
-  debug("initializing database", "osm_import", D_NOTICE);
-  sql_query(file_get_contents("$plugins_dir/osm_import/init.sql"));
 }
