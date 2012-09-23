@@ -22,17 +22,29 @@ if(!function_exists("debug")) {
 if(!function_exists("sql_file")) {
   global $PG_PARAMS;
   $PG_PARAMS="-d {$db_central['name']}";
-
+  $PG_PARAMS.=" --set ON_ERROR_STOP=1";
 
   function sql_file($file) {
     global $PG_PARAMS;
 
     debug("Executing $file", "openstreetbrowser-database", D_NOTICE);
-    system("psql {$PG_PARAMS} -f '$file'");
+    $ret=null;
+    system("psql {$PG_PARAMS} -f '$file'", &$ret);
+
+    if($ret!=0) {
+      debug("An error occured executing $file", "openstreetbrowser-database", D_ERROR);
+      exit;
+    }
   }
 
   function sql_query($query) {
-    return pg_query($query);
+    $res=pg_query($query);
+    if($res===false) {
+      debug("An error occured: ".pg_last_error(), "openstreetbrowser-database", D_ERROR);
+      exit;
+    }
+
+    return $res;
   }
 }
 
@@ -40,7 +52,6 @@ if(!function_exists("sql_file")) {
 pg_connect("dbname={$db_central['name']} host={$db_central['host']} user={$db_central['name']} password={$db_central['passwd']}");
 
 // Load extensions
-sql_query("create language plpgsql");
 sql_query("create extension hstore");
 sql_query("create extension btree_gist");
 
