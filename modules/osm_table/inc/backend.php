@@ -6,8 +6,6 @@ class osm_table {
 
   function __construct($name) {
     $this->name=$name;
-
-    $this->create_query_fun();
   }
 
   function create_query_fun() {
@@ -42,3 +40,12 @@ function register_osm_table($table) {
 
   $osm_table_list[$table]=new osm_table($table);
 }
+
+function osm_table_after_import() {
+  global $osm_table_list;
+
+  foreach($osm_table_list as $table)
+    $table->create_query_fun();
+}
+
+register_hook("after_import", "osm_table_after_import");

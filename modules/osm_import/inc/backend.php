@@ -51,10 +51,14 @@ function osm_import_db_init() {
 
   // reset search_path
   //sql_query("set search_path to {$search_path}");
+}
 
+function osm_import_init() {
   // Register tables
   register_osm_table("osm_point");
   register_osm_table("osm_line");
   register_osm_table("osm_polygon");
   register_osm_table("osm_rel");
 }
+
+register_hook("init", "osm_import_init");

@@ -26,6 +26,8 @@ foreach(modulekit_get_includes("pgsql-functions") as $file) {
   sql_file($file);
 }
 
+call_hooks("init");
+
 // Initialize database modules
 foreach(modulekit_get_includes("pgsql-init") as $file) {
   sql_file($file);
@@ -37,3 +39,5 @@ osm_import_db_init();
 foreach(modulekit_get_includes("pgsql-after-import") as $file) {
   sql_file($file);
 }
+
+call_hooks("after_import");
