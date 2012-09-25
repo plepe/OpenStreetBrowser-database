@@ -1,3 +1,3 @@
 <?
-$depend=array("hooks");
+$depend=array("pg_hooks");
 
