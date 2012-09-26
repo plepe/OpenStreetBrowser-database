@@ -11,9 +11,10 @@ function osm_import_db_init() {
   if(pg_num_rows($res))
     return;
 
-  $res=sql_query("select * from pg_tables where tablename='osm_point'");
-  if(pg_num_rows($res))
-    return;
+// TODO: check if table is not empty instead
+//  $res=sql_query("select * from pg_tables where tablename='osm_point'");
+//  if(pg_num_rows($res))
+//    return;
 
   if(!$osm_import_source) {
     debug("set \$osm_import_source in conf.php to an osm-file", "osm_import");
