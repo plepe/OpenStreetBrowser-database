@@ -41,6 +41,8 @@ function osm_import_db_init() {
   sql_file(modulekit_file("osm_import", "osmosis_scripts/pgsimple_schema_0.6.sql"));
   sql_file(modulekit_file("osm_import", "osmosis_scripts/pgsimple_schema_0.6_action.sql"));
 
+  call_hooks("osm_import_schema_created");
+
   // create tmp_dir
   mkdir("pgimport");
   system("{$ex} --read-xml file=$osm_import_source --write-pgsimp-dump directory=pgimport");
