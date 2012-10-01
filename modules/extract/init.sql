@@ -1,26 +1,26 @@
 drop table if exists osm_point_extract;
 create table osm_point_extract (
-  osm_id		text		not null,
-  osm_tags		hstore		null,
-  primary key(osm_id)
+  id		text		not null,
+  tags		hstore		null,
+  primary key(id)
 );
-select AddGeometryColumn('osm_point_extract', 'osm_way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_point_extract', 'way', 900913, 'GEOMETRY', 2);
 
 drop table if exists osm_line_extract;
 create table osm_line_extract (
-  osm_id		text		not null,
-  osm_tags		hstore		null,
-  primary key(osm_id)
+  id		text		not null,
+  tags		hstore		null,
+  primary key(id)
 );
-select AddGeometryColumn('osm_line_extract', 'osm_way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_line_extract', 'way', 900913, 'GEOMETRY', 2);
 
 drop table if exists osm_polygon_extract;
 create table osm_polygon_extract (
-  osm_id		text		not null,
-  osm_tags		hstore		null,
-  primary key(osm_id)
+  id		text		not null,
+  tags		hstore		null,
+  primary key(id)
 );
-select AddGeometryColumn('osm_polygon_extract', 'osm_way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_polygon_extract', 'way', 900913, 'GEOMETRY', 2);
 
 -- drop all views
 drop view if exists osm_all_extract;
@@ -32,39 +32,39 @@ drop view if exists osm_all_polygon_extract;
 -- osm_all_point
 create view osm_all_point_extract as (
   select
-    "osm_id",
-    'type=>node, form=>point'::hstore as "osm_type",
-    "osm_tags",
-    "osm_way" as "osm_way",
-    "osm_way" as "osm_way_point",
-    ST_MakeLine("osm_way", "osm_way") as "osm_way_line",
-    ST_MakePolygon(ST_MakeLine(Array["osm_way", "osm_way", "osm_way", "osm_way"])) as "osm_way_polygon"
+    "id",
+    'type=>node, form=>point'::hstore as "type",
+    "tags",
+    "way" as "way",
+    "way" as "way_point",
+    ST_MakeLine("way", "way") as "way_line",
+    ST_MakePolygon(ST_MakeLine(Array["way", "way", "way", "way"])) as "way_polygon"
   from osm_point_extract
 );
 
 -- osm_all_line
 create view osm_all_line_extract as (
   select
-    "osm_id",
-    'type=>way, form=>line'::hstore as "osm_type",
-    "osm_tags",
-    "osm_way" as "osm_way",
-    ST_Line_Interpolate_Point("osm_way", 0.5) as "osm_way_point",
-    "osm_way" as "osm_way_line",
-    null::geometry as "osm_way_polygon"
+    "id",
+    'type=>way, form=>line'::hstore as "type",
+    "tags",
+    "way" as "way",
+    ST_Line_Interpolate_Point("way", 0.5) as "way_point",
+    "way" as "way_line",
+    null::geometry as "way_polygon"
   from osm_line_extract
 );
 
 -- osm_all_polygon
 create view osm_all_polygon_extract as (
   select
-    "osm_id",
-    'form=>polygon'::hstore as "osm_type",
-    "osm_tags",
-    "osm_way" as "osm_way",
-    ST_Centroid("osm_way") as "osm_way_point",
-    ST_Boundary("osm_way") as "osm_way_line",
-    "osm_way" as "osm_way_polygon"
+    "id",
+    'form=>polygon'::hstore as "type",
+    "tags",
+    "way" as "way",
+    ST_Centroid("way") as "way_point",
+    ST_Boundary("way") as "way_line",
+    "way" as "way_polygon"
   from osm_polygon_extract
 );
 
