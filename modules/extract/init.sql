@@ -4,7 +4,7 @@ create table osm_point_extract (
   tags		hstore		null,
   primary key(id)
 );
-select AddGeometryColumn('osm_point_extract', 'way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_point_extract', 'way', 4326, 'GEOMETRY', 2);
 
 drop table if exists osm_line_extract;
 create table osm_line_extract (
@@ -12,7 +12,7 @@ create table osm_line_extract (
   tags		hstore		null,
   primary key(id)
 );
-select AddGeometryColumn('osm_line_extract', 'way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_line_extract', 'way', 4326, 'GEOMETRY', 2);
 
 drop table if exists osm_polygon_extract;
 create table osm_polygon_extract (
@@ -20,7 +20,7 @@ create table osm_polygon_extract (
   tags		hstore		null,
   primary key(id)
 );
-select AddGeometryColumn('osm_polygon_extract', 'way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_polygon_extract', 'way', 4326, 'GEOMETRY', 2);
 
 -- drop all views
 drop view if exists osm_all_extract;

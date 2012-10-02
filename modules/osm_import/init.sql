@@ -5,7 +5,7 @@ create table osm_point (
   tags		hstore		null,
   primary key(id)
 );
-select AddGeometryColumn('osm_point', 'way', 900913, 'POINT', 2);
+select AddGeometryColumn('osm_point', 'way', 4326, 'POINT', 2);
 
 -- ways -> osm_line and osm_polygon
 drop table if exists osm_line;
@@ -14,7 +14,7 @@ create table osm_line (
   tags		hstore		null,
   primary key(id)
 );
-select AddGeometryColumn('osm_line', 'way', 900913, 'LINESTRING', 2);
+select AddGeometryColumn('osm_line', 'way', 4326, 'LINESTRING', 2);
 
 drop table if exists osm_polygon;
 create table osm_polygon (
@@ -23,7 +23,7 @@ create table osm_polygon (
   tags		hstore		null,
   primary key(id)
 );
-select AddGeometryColumn('osm_polygon', 'way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_polygon', 'way', 4326, 'GEOMETRY', 2);
 alter table osm_polygon
   add column	member_ids		text[]		null,
   add column	member_roles		text[]		null;
@@ -35,7 +35,7 @@ create table osm_rel (
   tags		hstore		null,
   primary key(id)
 );
-select AddGeometryColumn('osm_rel', 'way', 900913, 'GEOMETRY', 2);
+select AddGeometryColumn('osm_rel', 'way', 4326, 'GEOMETRY', 2);
 alter table osm_rel
   add column	member_ids		text[]		null,
   add column	member_roles		text[]		null;

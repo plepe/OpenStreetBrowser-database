@@ -6,7 +6,7 @@ create table osm_boundary (
   rel_ids		text[]		default Array[]::text[],
   primary key(id)
 );
-select AddGeometryColumn('osm_boundary', 'way', 900913, 'LINESTRING', 2);
+select AddGeometryColumn('osm_boundary', 'way', 4326, 'LINESTRING', 2);
 
 drop table if exists osm_boundary_update;
 create table osm_boundary_update (

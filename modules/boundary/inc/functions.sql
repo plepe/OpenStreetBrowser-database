@@ -40,7 +40,7 @@ BEGIN
       tags,
       min_admin_level,
       (select array_agg('R'||rel_id) from (select unnest(rel_ids) as rel_id) x),
-      ST_Transform(geom, 900913)
+      geom
     );
   
   return true;
