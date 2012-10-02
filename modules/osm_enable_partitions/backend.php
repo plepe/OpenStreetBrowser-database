@@ -1,13 +1,24 @@
 <?
 function osm_enable_partitions_before_import() {
-  sql_query("select partition_integer_init_table('nodes')");
-  sql_query("select partition_integer_init_table('node_tags', 'id_column=>node_id')");
-  sql_query("select partition_integer_init_table('ways')");
-  sql_query("select partition_integer_init_table('way_tags', 'id_column=>way_id')");
-  sql_query("select partition_integer_init_table('way_nodes', 'id_column=>way_id')");
-  sql_query("select partition_integer_init_table('relations')");
-  sql_query("select partition_integer_init_table('relation_tags', 'id_column=>relation_id')");
-  sql_query("select partition_integer_init_table('relation_members', 'id_column=>relation_id')");
+# Initialize osm_tables
+  $file=modulekit_file("partition_geometry", "boundary_examples/osm_line_2012apr_64.900913", true);
+  sql_query("select partition_geometry_init_table('osm_point', '{$file}')");
+  sql_query("select partition_geometry_init_table('osm_line', '{$file}')");
+  sql_query("select partition_geometry_init_table('osm_polygon', '{$file}')");
+  sql_query("select partition_geometry_init_table('osm_rel', '{$file}')");
+
+  $file=modulekit_file("partition_geometry", "boundary_examples/osm_line_2012apr_16.900913", true);
+# If available also initialize extract tables
+  if(modulekit_loaded("extract")) {
+    sql_query("select partition_geometry_init_table('osm_point_extract', '{$file}')");
+    sql_query("select partition_geometry_init_table('osm_line_extract', '{$file}')");
+    sql_query("select partition_geometry_init_table('osm_polygon_extract', '{$file}')");
+  }
+
+# If available also initialize boundary table
+  if(modulekit_loaded("boundary")) {
+    sql_query("select partition_geometry_init_table('osm_boundary', '{$file}')");
+  }
 }
 
 register_hook("osm_import_schema_created", "osm_enable_partitions_before_import");
