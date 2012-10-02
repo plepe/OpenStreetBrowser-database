@@ -5,4 +5,4 @@ function extract_init() {
   register_osm_table("osm_polygon_extract");
 }
 
-register_hook("init", "boundary_init");
+register_hook("init", "extract_init");
