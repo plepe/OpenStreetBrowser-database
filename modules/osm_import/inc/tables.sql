@@ -4,31 +4,8 @@ DECLARE
   id alias for $1;
   ret text;
 BEGIN
-  ret:=cache_search('W'||id, 'geom');
-  if ret is not null then
-    -- raise notice 'way_get_geom(%) - cache hit', id;
-    return ret;
-  end if;
-
-  -- maybe already finished line?
-  ret:=(select way from osm_line where osm_line.id='W'||id);
-  if ret is not null then
-    -- raise notice 'way_get_geom(%) - osm_line hit', id;
-    return ret;
-  end if;
-
-  -- maybe already finished polygon? -> get only boundary
-  ret:=(select ST_Boundary(way) from osm_polygon where osm_polygon.id='W'||id);
-  if ret is not null then
-    -- raise notice 'way_get_geom(%) - osm_polygon hit', id;
-    return ret;
-  end if;
-
-  -- raise notice 'way_get_geom(%)', id;
-
---  raise notice 'count: %', (select count(node_id) from (select * from way_nodes join nodes on way_nodes.node_id=nodes.id where way_nodes.way_id=id order by sequence_id) c group by way_id);
-  ret:=(select cache_insert('W'||way_id, 'geom', (CASE WHEN count(*)>1 THEN cast(MakeLine(geom) as text) ELSE null::text END), to_textarray('N'||node_id)) from (select * from way_nodes join nodes on way_nodes.node_id=nodes.id where way_nodes.way_id=id and abs(Y(geom))!=90 order by sequence_id) c group by way_id);
-  -- abs(Y(geom))!=90 => ignore poles
+  ret:=(select (CASE WHEN count(*)>1 THEN cast(MakeLine(geom) as text) ELSE null::text END) from (select * from way_nodes join nodes on way_nodes.node_id=nodes.id where way_nodes.way_id=id order by sequence_id) c group by way_id);
+  -- perform cache_insert('W'||way_id, 'geom', ret);
 
   return ret;
 END;
