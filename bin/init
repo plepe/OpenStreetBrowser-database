@@ -1,12 +1,6 @@
 #!/usr/bin/php
 <?
 require "conf.php";
-$modulekit_default_includes=array(
-  "pgsql-functions"=>array("inc/*.sql"),
-  "pgsql-init"=>array("init.sql"),
-  "pgsql-after-import"=>array("after-import.sql"),
-  "php"=>array("inc/*.php"),
-);
 require "modulekit/loader.php";
 
 require modulekit_file("openstreetbrowser_database", "bin/simple.php");
