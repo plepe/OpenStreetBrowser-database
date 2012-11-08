@@ -6,8 +6,8 @@ $id="openstreetbrowser_database";
 $depend=array("hooks");
 
 $default_include=array(
-  "pgsql-functions"=>array("inc/*.sql"),
+  "pgsql-functions"=>array("inc/*.sql", "functions.sql"),
   "pgsql-init"=>array("init.sql"),
   "pgsql-after-import"=>array("after-import.sql"),
-  "php"=>array("inc/*.php"),
+  "php"=>array("inc/*.php", "backend.php"),
 );
