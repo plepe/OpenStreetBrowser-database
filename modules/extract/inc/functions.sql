@@ -127,23 +127,23 @@ DECLARE
   num_rows  int;
 BEGIN
   delete from osm_point_extract using
-    (select (data_type || id) as id from actions) x
-    where id=x.id;
+    (select (data_type || actions.id) as aid from actions) x
+    where id=x.aid;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_point_extract (%)', num_rows;
 
   delete from osm_line_extract using
-    (select (CASE WHEN data_type='W' THEN 'W'||id
-	    END) as id from actions) x
-    where id=x.id;
+    (select (CASE WHEN data_type='W' THEN 'W'||actions.id
+	    END) as aid from actions) x
+    where id=x.aid;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_line_extract (%)', num_rows;
 
   delete from osm_polygon_extract using
-    (select data_type || id as id from actions) x
-    where id=x.id;
+    (select data_type || actions.id as aid from actions) x
+    where id=x.aid;
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
   raise notice 'deleted from osm_polygon_extract (%)', num_rows;
