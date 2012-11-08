@@ -65,7 +65,7 @@ BEGIN
   match:='((tags @> E''"place"=>"continent"''::hstore) or (tags @> E''"place"=>"country"''::hstore) or (tags @> E''"place"=>"state"''::hstore) or (tags @> E''"place"=>"city"''::hstore) or (tags @> E''"place"=>"county"''::hstore) or (tags @> E''"place"=>"region"''::hstore) or (tags @> E''"place"=>"town"''::hstore) or (tags @> E''"place"=>"island"''::hstore) or (tags @> E''"place"=>"ocean"''::hstore) or (tags @> E''"place"=>"sea"''::hstore))';
 
   execute 'insert into osm_point_extract ( '
-    || 'select * '
+    || 'select distinct * '
     || 'from ( '
     || '  select '
     || '    id, '
@@ -85,7 +85,7 @@ BEGIN
   match:='(((tags @> E''"highway"=>"motorway"''::hstore) or (tags @> E''"highway"=>"motorway_link"''::hstore) or (tags @> E''"highway"=>"trunk"''::hstore) or (tags @> E''"highway"=>"trunk_link"''::hstore) or (tags @> E''"highway"=>"primary"''::hstore) or (tags @> E''"highway"=>"primary_link"''::hstore) or (tags @> E''"highway"=>"secondary"''::hstore) or (tags @> E''"highway"=>"tertiary"''::hstore)) or ((tags @> E''"aeroway"=>"runway"''::hstore)) or (((tags @> E''"railway"=>"rail"''::hstore)) and ( (tags @> E''"usage"=>"main"''::hstore))) or (( (tags @> E''"power"=>"line"''::hstore))) or (((tags @> E''"waterway"=>"river"''::hstore) or (tags @> E''"waterway"=>"canal"''::hstore))))';
 
   execute 'insert into osm_line_extract ( '
-    || 'select * '
+    || 'select distinct * '
     || 'from ( '
     || '  select '
     || '    id, '
@@ -103,7 +103,7 @@ BEGIN
   raise notice 'inserted to osm_line_extract (%)', num_rows;
 
   execute 'insert into osm_polygon_extract ( '
-    || 'select * '
+    || 'select distinct * '
     || 'from ( '
     || '  select '
     || '    id, '
@@ -112,7 +112,7 @@ BEGIN
     || '  from '
     || '    osm_polygon '
     || '  where '
-    || '    ST_Area(way)>1000000'
+    || '    ST_Area(ST_Transform(way, 900913))>1000000'
     || ') x);';
 
   GET DIAGNOSTICS num_rows = ROW_COUNT;
@@ -157,7 +157,7 @@ DECLARE
   num_rows  int;
 BEGIN
   insert into osm_point_extract (
-    select
+    select distinct
       osm_point.id,
       osm_point.tags,
       osm_point.way
@@ -174,7 +174,7 @@ BEGIN
   raise notice 'inserted to osm_point_extract (%)', num_rows;
 
   insert into osm_line_extract (
-    select
+    select distinct
       osm_line.id,
       osm_line.tags,
       osm_line.way
@@ -191,7 +191,7 @@ BEGIN
   raise notice 'inserted to osm_line_extract (%)', num_rows;
 
   insert into osm_polygon_extract (
-    select
+    select distinct
       osm_polygon.id,
       osm_polygon.tags,
       osm_polygon.way
