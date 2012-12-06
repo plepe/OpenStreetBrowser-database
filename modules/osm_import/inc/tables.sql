@@ -30,7 +30,12 @@ BEGIN
 
   geom_arr_nodes:=(select to_array(geom) from nodes where nodes.id in (select member_id from relation_members where relation_id=id and member_type='N'));
 
-  geom_arr_ways:=(select to_array(geom) as geom from (select way_get_geom(member_id) as geom from (select member_id from relation_members where relation_id=id and member_type='W') x) x1 where x1.geom is not null);
+  geom_arr_ways:=(select to_array(geom) as geom from (select
+            coalesce(
+              (select distinct way from osm_line where osm_line.id='W'||member_id),
+              (select distinct way from osm_polygon where osm_polygon.id='W'||member_id),
+	      way_get_geom(member_id)
+	    ) as geom from (select member_id from relation_members where relation_id=id and member_type='W') x) x1 where x1.geom is not null);
   --geom_rels:=(select ST_Collect(rel_get_geom(relations.id, rec+1)) from relations where relations.id in (select member_id from relation_members where relation_id=id and member_type='R'));
 
   if array_upper(geom_arr_nodes, 1) is not null then
