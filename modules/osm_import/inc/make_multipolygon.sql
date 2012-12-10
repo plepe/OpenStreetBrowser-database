@@ -29,7 +29,12 @@ begin
   end loop;
 
   -- merge all other geometries together
-  cur:=ST_LineMerge(ST_GeomFromEWKT(ST_AsEWKT(ST_Collect(todo))));
+  begin
+    cur:=ST_LineMerge(ST_GeomFromEWKT(ST_AsEWKT(ST_Collect(todo))));
+  exception when others then
+    raise notice 'error merging lines';
+    return null;
+  end;
 
   -- if those build a closed geometry
   if ST_NumGeometries(cur) is null then
