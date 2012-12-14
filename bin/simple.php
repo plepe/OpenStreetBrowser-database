@@ -40,6 +40,6 @@ if(!function_exists("sql_file")) {
 }
 
 // Connect to database
-pg_connect("dbname={$db_central['name']} host={$db_central['host']} user={$db_central['name']} password={$db_central['passwd']}");
+pg_connect("dbname={$db_central['name']} host={$db_central['host']} user={$db_central['user']} password={$db_central['passwd']}");
 
 
