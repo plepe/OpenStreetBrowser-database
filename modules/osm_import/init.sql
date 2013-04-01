@@ -40,8 +40,14 @@ alter table osm_rel
   add column	member_ids		text[]		null,
   add column	member_roles		text[]		null;
 
--- osm_all_* build the osm_all view
+create table osm_template_with_type (
+  id    text            not null,
+  tags  hstore          default ''::hstore,
+  way   geometry        not null,
+  type  hstore          default ''::hstore
+);
 
+-- osm_all_* build the osm_all view
 -- drop all views
 drop view if exists osm_all;
 
