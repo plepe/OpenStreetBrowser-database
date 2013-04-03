@@ -1,0 +1,36 @@
+== REQUIREMENTS ==
+* memcached  (http://memcached.org/)
+* pgmemcache (http://pgfoundry.org/projects/pgmemcache)
+
+== INSTALL ==
+{{{
+apt-get install libmemcached-dev memcached postgresql-server-dev-9.1 libsasl2-dev
+}}}
+
+Download and extract pgmemcached (from the URL above)
+{{{
+cd pgmemcached
+make
+sudo make install
+}}}
+
+== CONFIGURATION ==
+Modify /etc/postgresql/VERSION/main/postgresql.conf:
+{{{
+shared_preload_libraries = 'pgmemcache'
+}}}
+
+Add to the end of /etc/postgresql/VERSION/main/postgresql.conf:
+{{{
+custom_variable_classes = 'pgmemcache'
+pgmemcache.default_servers = 'localhost'
+}}}
+
+Edit /etc/memcached.conf
+
+Restart postgresql and memcached
+
+== Load SQL functions for pgmemcache ==
+{{{
+psql -f /usr/share/postgresql/9.1/contrib/pgmemcache.sql
+}}}
