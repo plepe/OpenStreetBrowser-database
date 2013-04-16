@@ -211,7 +211,9 @@ BEGIN
   geom:=rel_get_geom(id, 0);
 
   -- get members
-  select to_textarray(member_type || member_id) as ids, to_textarray(member_role) as roles into members from relation_members where relation_id=id group by relation_id;
+  select to_textarray(member_type || member_id) as ids, to_textarray(member_role) as roles into members from 
+  (select * from relation_members where relation_id=id order by sequence_id) rm
+  group by relation_id;
 
   -- raise notice 'assemble_rel(%)', id;
 
