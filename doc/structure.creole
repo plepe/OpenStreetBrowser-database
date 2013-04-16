@@ -1,0 +1,79 @@
+The data from the database is retrieved via stored procedurs. This enables the database side use of optimization techniques, like regional sub-tables.
+
+Each of this procedures return the following columns (some add additional columns):
+
+|=Column|=Type|=Comment
+| id | text | the id of node/way/relation from the database prefixed with its type (N=node, W=way, R=relation), e.g. 'W1234'.
+| tags | hstore | the tags of this object, e.g. 'amenity=>bar, name=>Whatever'
+| way | geometry | The geometry of the object, in WGS-84 coordinates (SRID 4326)
+
+The procedures have the following parameters:
+
+|=Parameter|=Type|=Comment
+| bbox | geometry | A bounding box. The returned object do not necessarily be inside this bbox.
+| where_expr | text | An expression selecting valid objects. You might want to enclose it in $$, so as you don't need additional escaping, e.g. $$tags @> 'highway=>primary'$$.
+| options | hstore | Additional options.
+
+Example:
+{{{
+  select * from osm_point(
+    SetSRID(MakeBox2D(ST_Point(16.182, 48.118), ST_Point(16.577, 48.322)), 4326),
+    $$tags @> 'amenity=>bar'$$
+  );
+
+     id     |                     tags                      |                        way                         
+------------+-----------------------------------------------+----------------------------------------------------
+ N352270388 | "name"=>"Deluxe Coffee Bar", "amenity"=>"bar" | 0101000020E61000003AAC1512D56A3040B285200725164840
+ N355826701 | "name"=>"Rhtyhm & Disco", "amenity"=>"bar"    | 0101000020E6100000F62C639EF069304031D461855B164840
+(and so on ...)
+}}}
+
+== Base procedures ==
+=== osm_point ===
+All nodes from the OpenStreetMap data with tags (except 'created_by').
+
+=== osm_line ===
+All non-closed ways.
+
+=== osm_polygon ===
+All closed ways as polygons and all multipolygon relations. Additionally two arrays are added as return columns, member_ids and member_roles are added, osm_rel for details.
+
+=== osm_rel ===
+All relations which are not multipolygons. Additionally two arrays are added as return columns, member_ids and member_roles are added, osm_rel for details.
+
+member_ids and member_roles are both of type text[] and have the same size. member_ids uses the same ids as in the the other procedures.
+
+Example:
+* member_ids: {W187831671,N292496673,W26668382}
+* member_roles: {from,via,to}
+
+== Additional procedures ==
+=== osm_linepoly ===
+Searches for matching elements in both osm_line and osm_polygon. Returns the additional 'type' column (see osm_all for details).
+
+=== osm_all ===
+Search objects in all tables at once. Returns an additional 'type' column:
+
+|=Column|=Type|=Comment
+| type | hstore | (Currently) has two keys: 'type' which is (node / way / rel) and 'form' which is ('point' for nodes, 'line' for not-closed ways, 'polygon' for closed ways and multipolygons or 'special' for other relations).
+
+=== osm_rel_members ===
+As osm_rel, but joins the result to a member_table.
+
+Parameters:
+|=Parameter|=Type|=Comment
+| bbox | geometry | A bounding box. The returned object do not necessarily be inside this bbox.
+| member_table | text | 'osm_point', 'osm_line', 'osm_polygon' or 'osm_rel'
+| where_expr | text | An expression selecting valid objects. You might want to enclose it in $$, so as you don't need additional escaping, e.g. $$tags @> 'highway=>primary'$$.
+| options | hstore | Additional options.
+
+Return columns:
+|=Column|=Type|=Comment
+| id | text | the id of node/way/relation from the database prefixed with its type (N=node, W=way, R=relation), e.g. 'W1234'.
+| member_id | text | Id of the member object
+| rel_member_ids | text[] | IDs of all member objects (as in osm_rel)
+| member_roles | text[] | Roles of all member objects (as in osm_rel)
+| tags | hstore | the tags of the relation
+| member_tags | hstore | the tags of the member object
+| way | geometry | The geometry of the object, in WGS-84 coordinates (SRID 4326)
+| member_way | geometry | The geometry of the member object
